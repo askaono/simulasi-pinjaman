@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulasi Pinjaman dengan Pembayaran Dipercepat</title>
+    <!-- Memuat Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Memuat library untuk fitur download -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <!-- Memuat Font Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        #loader-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(255, 255, 255, 0.8); z-index: 9999;
+            display: none; justify-content: center; align-items: center; backdrop-filter: blur(4px);
+        }
+        #loader {
+            border: 5px solid #f3f3f3; border-top: 5px solid #3b82f6; border-radius: 50%;
+            width: 50px; height: 50px; animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Style untuk input number agar tidak menampilkan panah atas/bawah */
+        input[type='number']::-webkit-outer-spin-button,
+        input[type='number']::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type='number'] { -moz-appearance: textfield; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div id="loader-overlay"><div id="loader"></div></div>
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <div id="captureArea" class="w-full bg-white rounded-2xl shadow-lg">
+            <div class="p-6 md:p-8">
+                <!-- Header -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                    <div class="mb-4 sm:mb-0">
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Simulasi Pelunasan Dipercepat</h1>
+                        <p class="text-gray-500 mt-1">Lihat efek pembayaran ekstra dari bonus tahunan.</p>
+                    </div>
+                    <div class="flex space-x-2">
+                         <button id="downloadPngBtn" class="bg-green-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-300 flex items-center text-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg>
+                            PNG
+                        </button>
+                        <button id="downloadPdfBtn" class="bg-red-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-300 flex items-center text-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+                            PDF
+                        </button>
+                    </div>
+                </div>
+                
+                 <!-- Parameter Pinjaman Utama -->
+                <fieldset class="mb-4 p-4 border border-gray-200 rounded-lg">
+                    <legend class="text-base font-semibold px-2 text-gray-700">Parameter Pinjaman Utama</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                        <div>
+                            <label for="principalInput" class="block text-sm font-medium text-gray-700 mb-1">Jumlah Pinjaman (Rp)</label>
+                            <input type="text" id="principalInput" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" value="450.000.000">
+                        </div>
+                        <div>
+                            <label for="termInput" class="block text-sm font-medium text-gray-700 mb-1">Jangka Waktu (Tahun)</label>
+                            <input type="number" id="termInput" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" value="8">
+                        </div>
+                        <div>
+                            <label for="interestRateInput" class="block text-sm font-medium text-gray-700 mb-1">Suku Bunga Tahunan (%)</label>
+                            <input type="number" id="interestRateInput" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" value="5">
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- Form Input Simulasi Bonus -->
+                <fieldset class="mb-6 p-4 border border-blue-200 rounded-lg">
+                    <legend class="text-base font-semibold px-2 text-blue-700">Simulasi Bonus Tahunan</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                        <div>
+                            <label for="annualBonus" class="block text-sm font-medium text-gray-700 mb-1">Jumlah Bonus Tahunan (Rp)</label>
+                            <input type="text" id="annualBonus" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" value="20.000.000">
+                        </div>
+                        <div>
+                            <label for="bonusPercentage" class="block text-sm font-medium text-gray-700 mb-1">Persen Bonus Digunakan (%)</label>
+                            <input type="number" id="bonusPercentage" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" value="100" min="0" max="100">
+                        </div>
+                        <div class="md:self-end">
+                            <button id="recalculateBtn" class="w-full bg-indigo-600 text-white font-semibold py-2.5 px-6 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300">
+                                Hitung Ulang Simulasi
+                            </button>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- Ringkasan Hasil Simulasi -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 text-center">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-sm text-gray-600">Pinjaman Awal</p>
+                        <p id="loanAmount" class="text-lg font-bold text-gray-800"></p>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <p class="text-sm text-green-800">Pinjaman Lunas Dalam</p>
+                        <p id="newLoanTerm" class="text-lg font-bold text-green-600"></p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-sm text-gray-600">Total Bunga Dibayar</p>
+                        <p id="newTotalInterest" class="text-lg font-bold text-gray-800"></p>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                        <p class="text-sm text-yellow-800">Bunga Berhasil Dihemat</p>
+                        <p id="interestSaved" class="text-lg font-bold text-yellow-600"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tabel Amortisasi -->
+            <div id="tableContainer" class="overflow-x-auto rounded-b-2xl border-t border-gray-200">
+                <table id="loanTable" class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Bulan</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Angs. Pokok</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Angs. Bunga</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase bg-yellow-100">Pembayaran Ekstra (Bonus)</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total Bayar</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Sisa Pinjaman</th>
+                        </tr>
+                    </thead>
+                    <tbody id="amortizationTable" class="bg-white divide-y divide-gray-200">
+                        <!-- Baris tabel diisi oleh JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let pdfData = [];
+        const { jsPDF } = window.jspdf;
+        
+        // --- ELEMEN DOM ---
+        const elements = {
+            loaderOverlay: document.getElementById('loader-overlay'),
+            captureArea: document.getElementById('captureArea'),
+            principalInput: document.getElementById('principalInput'),
+            termInput: document.getElementById('termInput'),
+            interestRateInput: document.getElementById('interestRateInput'),
+            annualBonusInput: document.getElementById('annualBonus'),
+            bonusPercentageInput: document.getElementById('bonusPercentage'),
+            recalculateBtn: document.getElementById('recalculateBtn'),
+            loanAmount: document.getElementById('loanAmount'),
+            newLoanTerm: document.getElementById('newLoanTerm'),
+            newTotalInterest: document.getElementById('newTotalInterest'),
+            interestSaved: document.getElementById('interestSaved'),
+            amortizationTable: document.getElementById('amortizationTable'),
+            downloadPngBtn: document.getElementById('downloadPngBtn'),
+            downloadPdfBtn: document.getElementById('downloadPdfBtn'),
+            tableContainer: document.getElementById('tableContainer')
+        };
+        
+        // --- FUNGSI FORMATTING & UTILITY ---
+        function formatRupiah(number, useSymbol = true) {
+            const options = { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 };
+            if (!useSymbol) { options.style = 'decimal'; }
+            return new Intl.NumberFormat('id-ID', options).format(number);
+        }
+
+        function parseCurrency(input) {
+            return parseFloat(String(input).replace(/[^0-9]/g, '')) || 0;
+        }
+        
+        function showLoader(show) {
+            elements.loaderOverlay.style.display = show ? 'flex' : 'none';
+        }
+
+        // --- FUNGSI INTI SIMULASI ---
+        function runSimulation() {
+            showLoader(true);
+            setTimeout(() => {
+                // 1. Ambil nilai input utama
+                const initialPrincipal = parseCurrency(elements.principalInput.value);
+                const initialTermInYears = parseFloat(elements.termInput.value) || 0;
+                const annualInterestRate = parseFloat(elements.interestRateInput.value) || 0;
+                
+                // Ambil nilai input bonus
+                const annualBonus = parseCurrency(elements.annualBonusInput.value);
+                const bonusPercentage = parseFloat(elements.bonusPercentageInput.value) || 0;
+                
+                if (initialPrincipal <= 0 || initialTermInYears <= 0 || annualInterestRate <= 0) {
+                    alert('Mohon isi parameter pinjaman utama dengan angka yang valid.');
+                    showLoader(false);
+                    return;
+                }
+                
+                // 2. Hitung pembayaran bulanan standar & total bunga awal
+                const initialTermInMonths = initialTermInYears * 12;
+                const monthlyInterestRate = (annualInterestRate / 100) / 12;
+                const standardMonthlyPayment = initialPrincipal * monthlyInterestRate / (1 - Math.pow(1 + monthlyInterestRate, -initialTermInMonths));
+                const originalTotalInterest = (standardMonthlyPayment * initialTermInMonths) - initialPrincipal;
+
+                // 3. Inisialisasi variabel untuk simulasi baru
+                let remainingBalance = initialPrincipal;
+                let currentMonth = 0;
+                let newTotalInterestPaid = 0;
+                pdfData = [];
+                elements.amortizationTable.innerHTML = ''; 
+
+                // 4. Jalankan simulasi bulan per bulan
+                while (remainingBalance > 0 && currentMonth < 600) { // Safety break
+                    currentMonth++;
+                    const interestForMonth = remainingBalance * monthlyInterestRate;
+                    let principalForMonth = standardMonthlyPayment - interestForMonth;
+                    let extraPayment = 0;
+
+                    if (currentMonth % 12 === 0 && annualBonus > 0 && bonusPercentage > 0) {
+                        extraPayment = annualBonus * (bonusPercentage / 100);
+                    }
+                    
+                    if ((principalForMonth + extraPayment) >= remainingBalance) {
+                        principalForMonth = remainingBalance - extraPayment;
+                        if(principalForMonth < 0) {
+                            extraPayment = remainingBalance;
+                            principalForMonth = 0;
+                        }
+                        remainingBalance = 0;
+                    } else {
+                        remainingBalance -= (principalForMonth + extraPayment);
+                    }
+                    
+                    newTotalInterestPaid += interestForMonth;
+                    const totalPaymentThisMonth = principalForMonth + interestForMonth + extraPayment;
+
+                    pdfData.push([
+                        currentMonth,
+                        formatRupiah(principalForMonth, false),
+                        formatRupiah(interestForMonth, false),
+                        formatRupiah(extraPayment, false),
+                        formatRupiah(totalPaymentThisMonth, false),
+                        formatRupiah(remainingBalance, false)
+                    ]);
+
+                    const row = document.createElement('tr');
+                    row.className = (currentMonth % 2 !== 0) ? 'bg-white' : 'bg-gray-50';
+                    row.innerHTML = `
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900 text-center">${currentMonth}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500 text-right">${formatRupiah(principalForMonth)}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500 text-right">${formatRupiah(interestForMonth)}</td>
+                        <td class="px-6 py-4 text-sm text-right font-semibold ${extraPayment > 0 ? 'text-yellow-600 bg-yellow-100' : 'text-gray-500'}">${formatRupiah(extraPayment)}</td>
+                        <td class="px-6 py-4 text-sm font-semibold text-gray-700 text-right">${formatRupiah(totalPaymentThisMonth)}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500 text-right">${formatRupiah(remainingBalance)}</td>
+                    `;
+                    elements.amortizationTable.appendChild(row);
+                }
+
+                // 6. Update ringkasan hasil
+                const newTermYears = Math.floor(currentMonth / 12);
+                const newTermMonths = currentMonth % 12;
+                const interestSaved = originalTotalInterest - newTotalInterestPaid;
+                
+                elements.loanAmount.textContent = formatRupiah(initialPrincipal);
+                elements.newLoanTerm.textContent = `${newTermYears} Thn ${newTermMonths} Bln`;
+                elements.newTotalInterest.textContent = formatRupiah(newTotalInterestPaid);
+                elements.interestSaved.textContent = formatRupiah(interestSaved < 0 ? 0 : interestSaved);
+
+                showLoader(false);
+            }, 100);
+        }
+        
+        // --- EVENT LISTENERS ---
+        function addInputFormatting(inputElement) {
+            inputElement.addEventListener('keyup', function(e) {
+                let value = parseCurrency(e.target.value);
+                e.target.value = new Intl.NumberFormat('id-ID').format(value);
+            });
+             inputElement.addEventListener('blur', function(e) {
+                 if(e.target.value === '') e.target.value = '0';
+            });
+        }
+        
+        window.addEventListener('load', () => {
+            addInputFormatting(elements.principalInput);
+            addInputFormatting(elements.annualBonusInput);
+            runSimulation();
+        });
+        
+        elements.recalculateBtn.addEventListener('click', runSimulation);
+
+        elements.downloadPngBtn.addEventListener('click', () => {
+            showLoader(true);
+            const originalOverflow = elements.tableContainer.style.overflowX;
+            elements.tableContainer.style.overflowX = 'visible';
+
+            setTimeout(() => {
+                html2canvas(elements.captureArea, { scale: 2, useCORS: true, logging: false }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = 'simulasi-pelunasan-dipercepat.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    elements.tableContainer.style.overflowX = originalOverflow;
+                    showLoader(false);
+                }).catch(err => {
+                    console.error("Error PNG:", err);
+                    elements.tableContainer.style.overflowX = originalOverflow;
+                    showLoader(false);
+                });
+            }, 200);
+        });
+
+        elements.downloadPdfBtn.addEventListener('click', () => {
+            showLoader(true);
+            setTimeout(() => {
+                try {
+                    const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+                    
+                    doc.setFontSize(18);
+                    doc.text("Simulasi Pelunasan Dipercepat", 14, 22);
+
+                    doc.setFontSize(11);
+                    doc.setTextColor(100);
+                    const summaryText = `
+                        Pinjaman Awal: ${elements.loanAmount.textContent} (${elements.termInput.value} Tahun @ ${elements.interestRateInput.value}%)
+                        Lunas Dalam: ${elements.newLoanTerm.textContent}
+                        Total Bunga Dibayar: ${elements.newTotalInterest.textContent}
+                        Bunga Dihemat: ${elements.interestSaved.textContent}
+                        Pembayaran Bonus Tahunan: ${formatRupiah(parseCurrency(elements.annualBonusInput.value))} (${elements.bonusPercentageInput.value}%)
+                    `;
+                    doc.text(summaryText.trim(), 14, 32);
+
+                    doc.autoTable({
+                        head: [['Bln', 'Pokok', 'Bunga', 'Bonus', 'Total', 'Sisa Pinjaman']],
+                        body: pdfData,
+                        startY: 70,
+                        headStyles: { fillColor: [243, 244, 246], textColor: [55, 65, 81], fontSize: 8 },
+                        bodyStyles: { fontSize: 7 },
+                        styles: { halign: 'right' },
+                        columnStyles: { 0: { halign: 'center' } },
+                        didDrawPage: data => {
+                            doc.setFontSize(10);
+                            doc.text("Halaman " + doc.internal.getNumberOfPages(), data.settings.margin.left, doc.internal.pageSize.height - 10);
+                        }
+                    });
+                    doc.save('simulasi-pelunasan-dipercepat.pdf');
+                } catch (err) {
+                    console.error("Error PDF:", err);
+                } finally {
+                    showLoader(false);
+                }
+            }, 200);
+        });
+    </script>
+</body>
+</html>
