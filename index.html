@@ -32,6 +32,7 @@
         input[type='number']::-webkit-outer-spin-button,
         input[type='number']::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type='number'] { -moz-appearance: textfield; }
+        .result-card p:first-child { min-height: 2.5rem; } /* Menyamakan tinggi label */
     </style>
 </head>
 <body class="bg-gray-100">
@@ -43,7 +44,7 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
                     <div class="mb-4 sm:mb-0">
                         <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Simulasi Pelunasan Dipercepat</h1>
-                        <p class="text-gray-500 mt-1">Lihat efek pembayaran ekstra dari bonus tahunan.</p>
+                        <p class="text-gray-500 mt-1">Lengkap dengan potongan SWK dan simulasi bonus.</p>
                     </div>
                     <div class="flex space-x-2">
                          <button id="downloadPngBtn" class="bg-green-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-300 flex items-center text-sm">
@@ -57,36 +58,36 @@
                     </div>
                 </div>
                 
-                 <!-- Parameter Pinjaman Utama -->
+                <!-- Parameter Pinjaman Utama -->
                 <fieldset class="mb-4 p-4 border border-gray-200 rounded-lg">
                     <legend class="text-base font-semibold px-2 text-gray-700">Parameter Pinjaman Utama</legend>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
                         <div>
                             <label for="principalInput" class="block text-sm font-medium text-gray-700 mb-1">Jumlah Pinjaman (Rp)</label>
-                            <input type="text" id="principalInput" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" value="450.000.000">
+                            <input type="text" id="principalInput" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="Contoh: 450.000.000">
                         </div>
                         <div>
                             <label for="termInput" class="block text-sm font-medium text-gray-700 mb-1">Jangka Waktu (Tahun)</label>
-                            <input type="number" id="termInput" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" value="8">
+                            <input type="number" id="termInput" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="Contoh: 8">
                         </div>
                         <div>
                             <label for="interestRateInput" class="block text-sm font-medium text-gray-700 mb-1">Suku Bunga Tahunan (%)</label>
-                            <input type="number" id="interestRateInput" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" value="5">
+                            <input type="number" id="interestRateInput" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="Contoh: 5">
                         </div>
                     </div>
                 </fieldset>
 
                 <!-- Form Input Simulasi Bonus -->
                 <fieldset class="mb-6 p-4 border border-blue-200 rounded-lg">
-                    <legend class="text-base font-semibold px-2 text-blue-700">Simulasi Bonus Tahunan</legend>
+                    <legend class="text-base font-semibold px-2 text-blue-700">Simulasi Bonus Tahunan (Opsional)</legend>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
                         <div>
                             <label for="annualBonus" class="block text-sm font-medium text-gray-700 mb-1">Jumlah Bonus Tahunan (Rp)</label>
-                            <input type="text" id="annualBonus" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" value="20.000.000">
+                            <input type="text" id="annualBonus" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="Contoh: 20.000.000">
                         </div>
                         <div>
                             <label for="bonusPercentage" class="block text-sm font-medium text-gray-700 mb-1">Persen Bonus Digunakan (%)</label>
-                            <input type="number" id="bonusPercentage" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" value="100" min="0" max="100">
+                            <input type="number" id="bonusPercentage" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="Contoh: 100" min="0" max="100">
                         </div>
                         <div class="md:self-end">
                             <button id="recalculateBtn" class="w-full bg-indigo-600 text-white font-semibold py-2.5 px-6 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300">
@@ -97,28 +98,38 @@
                 </fieldset>
 
                 <!-- Ringkasan Hasil Simulasi -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 text-center">
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <p class="text-sm text-gray-600">Pinjaman Awal</p>
-                        <p id="loanAmount" class="text-lg font-bold text-gray-800"></p>
-                    </div>
-                    <div class="bg-green-50 p-4 rounded-lg border border-green-200">
-                        <p class="text-sm text-green-800">Pinjaman Lunas Dalam</p>
-                        <p id="newLoanTerm" class="text-lg font-bold text-green-600"></p>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <p class="text-sm text-gray-600">Total Bunga Dibayar</p>
-                        <p id="newTotalInterest" class="text-lg font-bold text-gray-800"></p>
-                    </div>
-                    <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                        <p class="text-sm text-yellow-800">Bunga Berhasil Dihemat</p>
-                        <p id="interestSaved" class="text-lg font-bold text-yellow-600"></p>
+                <div id="results-summary" class="hidden">
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8 text-center">
+                        <div class="bg-gray-50 p-4 rounded-lg result-card">
+                            <p class="text-sm text-gray-600">Pinjaman Awal</p>
+                            <p id="loanAmount" class="text-lg font-bold text-gray-800"></p>
+                        </div>
+                        <div class="bg-red-50 p-4 rounded-lg border border-red-200 result-card">
+                            <p class="text-sm text-red-800">Potongan SWK (0.5%)</p>
+                            <p id="swkDeduction" class="text-lg font-bold text-red-600"></p>
+                        </div>
+                        <div class="bg-blue-50 p-4 rounded-lg border border-blue-200 result-card">
+                            <p class="text-sm text-blue-800">Terima Bersih</p>
+                            <p id="netAmount" class="text-lg font-bold text-blue-600"></p>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg border border-green-200 result-card">
+                            <p class="text-sm text-green-800">Pinjaman Lunas Dalam</p>
+                            <p id="newLoanTerm" class="text-lg font-bold text-green-600"></p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg result-card">
+                            <p class="text-sm text-gray-600">Total Bunga Dibayar</p>
+                            <p id="newTotalInterest" class="text-lg font-bold text-gray-800"></p>
+                        </div>
+                        <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200 result-card">
+                            <p class="text-sm text-yellow-800">Estimasi Bunga Dihemat (dengan bonus)</p>
+                            <p id="interestSaved" class="text-lg font-bold text-yellow-600"></p>
+                        </div>
                     </div>
                 </div>
             </div>
             
             <!-- Tabel Amortisasi -->
-            <div id="tableContainer" class="overflow-x-auto rounded-b-2xl border-t border-gray-200">
+            <div id="tableContainer" class="hidden overflow-x-auto rounded-b-2xl border-t border-gray-200">
                 <table id="loanTable" class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
@@ -152,7 +163,10 @@
             annualBonusInput: document.getElementById('annualBonus'),
             bonusPercentageInput: document.getElementById('bonusPercentage'),
             recalculateBtn: document.getElementById('recalculateBtn'),
+            resultsSummary: document.getElementById('results-summary'),
             loanAmount: document.getElementById('loanAmount'),
+            swkDeduction: document.getElementById('swkDeduction'),
+            netAmount: document.getElementById('netAmount'),
             newLoanTerm: document.getElementById('newLoanTerm'),
             newTotalInterest: document.getElementById('newTotalInterest'),
             interestSaved: document.getElementById('interestSaved'),
@@ -179,22 +193,25 @@
 
         // --- FUNGSI INTI SIMULASI ---
         function runSimulation() {
+            // 1. Ambil nilai input utama
+            const initialPrincipal = parseCurrency(elements.principalInput.value);
+            const initialTermInYears = parseFloat(elements.termInput.value) || 0;
+            const annualInterestRate = parseFloat(elements.interestRateInput.value) || 0;
+            
+            if (initialPrincipal <= 0 || initialTermInYears <= 0 || annualInterestRate <= 0) {
+                alert('Mohon isi Parameter Pinjaman Utama dengan angka yang valid.');
+                return;
+            }
+            
             showLoader(true);
             setTimeout(() => {
-                // 1. Ambil nilai input utama
-                const initialPrincipal = parseCurrency(elements.principalInput.value);
-                const initialTermInYears = parseFloat(elements.termInput.value) || 0;
-                const annualInterestRate = parseFloat(elements.interestRateInput.value) || 0;
-                
                 // Ambil nilai input bonus
                 const annualBonus = parseCurrency(elements.annualBonusInput.value);
                 const bonusPercentage = parseFloat(elements.bonusPercentageInput.value) || 0;
                 
-                if (initialPrincipal <= 0 || initialTermInYears <= 0 || annualInterestRate <= 0) {
-                    alert('Mohon isi parameter pinjaman utama dengan angka yang valid.');
-                    showLoader(false);
-                    return;
-                }
+                // Hitung SWK & Terima Bersih
+                const swkDeduction = initialPrincipal * 0.005;
+                const netAmount = initialPrincipal - swkDeduction;
                 
                 // 2. Hitung pembayaran bulanan standar & total bunga awal
                 const initialTermInMonths = initialTermInYears * 12;
@@ -262,9 +279,15 @@
                 const interestSaved = originalTotalInterest - newTotalInterestPaid;
                 
                 elements.loanAmount.textContent = formatRupiah(initialPrincipal);
+                elements.swkDeduction.textContent = formatRupiah(swkDeduction);
+                elements.netAmount.textContent = formatRupiah(netAmount);
                 elements.newLoanTerm.textContent = `${newTermYears} Thn ${newTermMonths} Bln`;
                 elements.newTotalInterest.textContent = formatRupiah(newTotalInterestPaid);
                 elements.interestSaved.textContent = formatRupiah(interestSaved < 0 ? 0 : interestSaved);
+                
+                // Tampilkan hasil
+                elements.resultsSummary.classList.remove('hidden');
+                elements.tableContainer.classList.remove('hidden');
 
                 showLoader(false);
             }, 100);
@@ -274,22 +297,25 @@
         function addInputFormatting(inputElement) {
             inputElement.addEventListener('keyup', function(e) {
                 let value = parseCurrency(e.target.value);
-                e.target.value = new Intl.NumberFormat('id-ID').format(value);
-            });
-             inputElement.addEventListener('blur', function(e) {
-                 if(e.target.value === '') e.target.value = '0';
+                // Hanya format jika input tidak kosong, untuk mencegah '0' muncul saat menghapus
+                if(e.target.value) {
+                    e.target.value = new Intl.NumberFormat('id-ID').format(value);
+                }
             });
         }
         
         window.addEventListener('load', () => {
             addInputFormatting(elements.principalInput);
             addInputFormatting(elements.annualBonusInput);
-            runSimulation();
         });
         
         elements.recalculateBtn.addEventListener('click', runSimulation);
 
         elements.downloadPngBtn.addEventListener('click', () => {
+            if (elements.resultsSummary.classList.contains('hidden')) {
+                alert('Silakan hitung simulasi terlebih dahulu.');
+                return;
+            }
             showLoader(true);
             const originalOverflow = elements.tableContainer.style.overflowX;
             elements.tableContainer.style.overflowX = 'visible';
@@ -311,6 +337,10 @@
         });
 
         elements.downloadPdfBtn.addEventListener('click', () => {
+             if (elements.resultsSummary.classList.contains('hidden')) {
+                alert('Silakan hitung simulasi terlebih dahulu.');
+                return;
+            }
             showLoader(true);
             setTimeout(() => {
                 try {
@@ -323,17 +353,20 @@
                     doc.setTextColor(100);
                     const summaryText = `
                         Pinjaman Awal: ${elements.loanAmount.textContent} (${elements.termInput.value} Tahun @ ${elements.interestRateInput.value}%)
+                        Potongan SWK (0.5%): ${elements.swkDeduction.textContent}
+                        Terima Bersih: ${elements.netAmount.textContent}
+                        
                         Lunas Dalam: ${elements.newLoanTerm.textContent}
                         Total Bunga Dibayar: ${elements.newTotalInterest.textContent}
-                        Bunga Dihemat: ${elements.interestSaved.textContent}
-                        Pembayaran Bonus Tahunan: ${formatRupiah(parseCurrency(elements.annualBonusInput.value))} (${elements.bonusPercentageInput.value}%)
+                        Estimasi Bunga Dihemat: ${elements.interestSaved.textContent}
+                        Pembayaran Bonus Tahunan: ${formatRupiah(parseCurrency(elements.annualBonusInput.value))} (${elements.bonusPercentageInput.value || 0}%)
                     `;
                     doc.text(summaryText.trim(), 14, 32);
 
                     doc.autoTable({
                         head: [['Bln', 'Pokok', 'Bunga', 'Bonus', 'Total', 'Sisa Pinjaman']],
                         body: pdfData,
-                        startY: 70,
+                        startY: 75,
                         headStyles: { fillColor: [243, 244, 246], textColor: [55, 65, 81], fontSize: 8 },
                         bodyStyles: { fontSize: 7 },
                         styles: { halign: 'right' },
