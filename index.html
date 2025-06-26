@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulasi Pinjaman - Pokok Tetap & Tenor Dinamis</title>
+    <title>Simulasi Pinjaman - Tenor & Pokok Tetap</title>
     <!-- Memuat Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Memuat library untuk fitur download -->
@@ -40,8 +40,8 @@
                 <!-- Header -->
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
                     <div>
-                        <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Simulasi Pinjaman Pokok Tetap</h1>
-                        <p class="text-gray-500 mt-1">Hitung angsuran dengan bunga flat dan tenor dinamis.</p>
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Simulasi Pinjaman Tenor Tetap</h1>
+                        <p class="text-gray-500 mt-1">Dengan angsuran pokok tetap dan pelunasan di akhir tenor.</p>
                     </div>
                     <div class="flex space-x-2 mt-4 sm:mt-0">
                          <button id="downloadPngBtn" class="bg-green-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-300 flex items-center text-sm">PNG</button>
@@ -52,18 +52,38 @@
                 <!-- Parameter Pinjaman -->
                 <fieldset class="mb-6 p-4 border border-gray-200 rounded-lg">
                     <legend class="text-base font-semibold px-2 text-gray-700">Parameter Pinjaman</legend>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 pt-2">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-4 pt-2">
                         <div>
                             <label for="principalInput" class="block text-sm font-medium text-gray-700 mb-1">Uang Pinjaman (UP)</label>
                             <input type="text" id="principalInput" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="450.000.000">
                         </div>
                          <div>
-                            <label for="interestRateInput" class="block text-sm font-medium text-gray-700 mb-1">Bunga Pinjaman Flat Per Tahun (%)</label>
+                            <label for="interestRateInput" class="block text-sm font-medium text-gray-700 mb-1">Bunga Flat Per Tahun (%)</label>
                             <input type="number" id="interestRateInput" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="5">
                         </div>
                         <div>
                             <label for="fixedPrincipalInput" class="block text-sm font-medium text-gray-700 mb-1">Angsuran Pokok Tetap (Rp)</label>
                             <input type="text" id="fixedPrincipalInput" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="3.000.000">
+                        </div>
+                         <div>
+                            <label for="termInput" class="block text-sm font-medium text-gray-700 mb-1">Jangka Waktu (Tahun)</label>
+                            <select id="termInput" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8" selected>8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                                <option value="13">13</option>
+                                <option value="14">14</option>
+                                <option value="15">15</option>
+                            </select>
                         </div>
                         <div>
                             <label for="disbursementDate" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Pencairan</label>
@@ -74,7 +94,7 @@
                             <input type="text" id="annualBonus" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="20.000.000">
                         </div>
                         <div>
-                            <label for="bonusStartDate" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai Potongan Bonus</label>
+                            <label for="bonusStartDate" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai Bonus</label>
                             <input type="date" id="bonusStartDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
                         </div>
                     </div>
@@ -94,8 +114,8 @@
                         <p id="totalInterestPaid" class="text-lg font-bold text-blue-600"></p>
                     </div>
                      <div class="bg-green-50 p-4 rounded-lg border border-green-200">
-                        <p class="text-sm text-green-800">Pinjaman Lunas Dalam</p>
-                        <p id="loanTermResult" class="text-lg font-bold text-green-600"></p>
+                        <p class="text-sm text-green-800">Total Bonus Dibayar</p>
+                        <p id="totalBonusPaid" class="text-lg font-bold text-green-600"></p>
                     </div>
                     <div class="bg-red-50 p-4 rounded-lg border border-red-200">
                         <p class="text-sm text-red-800">Potongan SWK (0.5%)</p>
@@ -131,6 +151,7 @@
             loaderOverlay: document.getElementById('loader-overlay'),
             principalInput: document.getElementById('principalInput'),
             interestRateInput: document.getElementById('interestRateInput'),
+            termInput: document.getElementById('termInput'),
             fixedPrincipalInput: document.getElementById('fixedPrincipalInput'),
             disbursementDate: document.getElementById('disbursementDate'),
             annualBonus: document.getElementById('annualBonus'),
@@ -139,7 +160,7 @@
             resultsSummary: document.getElementById('results-summary'),
             monthlyPayment: document.getElementById('monthlyPayment'),
             totalInterestPaid: document.getElementById('totalInterestPaid'),
-            loanTermResult: document.getElementById('loanTermResult'),
+            totalBonusPaid: document.getElementById('totalBonusPaid'),
             swkDeduction: document.getElementById('swkDeduction'),
             amortizationTable: document.getElementById('amortizationTable'),
             downloadPngBtn: document.getElementById('downloadPngBtn'),
@@ -169,13 +190,14 @@
         function runSimulation() {
             const initialPrincipal = parseCurrency(elements.principalInput.value);
             const annualInterestRate = parseFloat(elements.interestRateInput.value) || 0;
+            const termInYears = parseFloat(elements.termInput.value) || 0;
             const fixedPrincipal = parseCurrency(elements.fixedPrincipalInput.value);
             const disbursementDateStr = elements.disbursementDate.value;
             const annualBonus = parseCurrency(elements.annualBonus.value);
             const bonusStartDateStr = elements.bonusStartDate.value;
             
-            if (initialPrincipal <= 0 || annualInterestRate <= 0 || fixedPrincipal <= 0 || !disbursementDateStr) {
-                alert('Mohon isi Uang Pinjaman, Bunga, Angsuran Pokok Tetap, dan Tanggal Pencairan.');
+            if (initialPrincipal <= 0 || annualInterestRate <= 0 || fixedPrincipal <= 0 || termInYears <=0 || !disbursementDateStr) {
+                alert('Mohon isi semua parameter pinjaman dengan benar.');
                 return;
             }
             
@@ -184,65 +206,62 @@
                 elements.amortizationTable.innerHTML = '';
                 pdfData = [];
                 
+                const termInMonths = termInYears * 12;
                 const monthlyInterestConstant = (initialPrincipal * (annualInterestRate / 100)) / 12;
                 let remainingPrincipal = initialPrincipal;
                 let totalInterestPaid = 0;
-                let currentMonth = 0;
-
+                let totalBonusPaid = 0;
+                
                 const disbursementDate = new Date(disbursementDateStr);
                 const bonusStartDate = bonusStartDateStr ? new Date(bonusStartDateStr) : null;
                 
                 renderTableRow(0, disbursementDate, 0, 0, 0, initialPrincipal);
 
-                while (remainingPrincipal > 0 && currentMonth < 600) { // Safety break
-                    currentMonth++;
+                for (let currentMonth = 1; currentMonth <= termInMonths; currentMonth++) {
+                    if (remainingPrincipal <= 0.01) break; 
                     
-                    let principalForMonth;
-                    let isBonusMonth = false;
-                    
-                    // Logic to check for bonus payment
-                    if (annualBonus > 0 && bonusStartDate && currentMonth > 0) {
-                        const dueDate = new Date(disbursementDate);
-                        dueDate.setMonth(dueDate.getMonth() + currentMonth);
-                        
-                        // Check if the due date is on or after the bonus start date
-                        // AND if the month matches the bonus start date's month
-                        if (dueDate >= bonusStartDate && dueDate.getMonth() === bonusStartDate.getMonth()) {
-                            isBonusMonth = true;
-                        }
-                    }
+                    let principalForMonth = 0;
+                    const dueDate = new Date(disbursementDate);
+                    dueDate.setMonth(dueDate.getMonth() + currentMonth);
 
-                    if (isBonusMonth) {
+                    let isBonusMonth = false;
+                    if (annualBonus > 0 && bonusStartDate && dueDate >= bonusStartDate && dueDate.getMonth() === bonusStartDate.getMonth()) {
+                        isBonusMonth = true;
+                    }
+                    
+                    if (currentMonth === termInMonths) {
+                        // On the last month, pay off the entire remaining balance
+                        principalForMonth = remainingPrincipal;
+                    } else if (isBonusMonth) {
                         // On bonus month, principal payment is only the bonus amount
                         principalForMonth = annualBonus;
                     } else {
                         // On normal month, principal payment is the fixed amount
                         principalForMonth = fixedPrincipal;
                     }
-
-                    // Adjust final payment to not overshoot
+                    
+                    // Final check to ensure payment does not exceed remaining balance
                     if (principalForMonth > remainingPrincipal) {
                         principalForMonth = remainingPrincipal;
                     }
                     
+                    if (isBonusMonth) {
+                         totalBonusPaid += principalForMonth;
+                    }
+
                     const totalPaymentThisMonth = principalForMonth + monthlyInterestConstant;
                     remainingPrincipal -= principalForMonth;
                     totalInterestPaid += monthlyInterestConstant;
                     
-                    const currentDueDate = new Date(disbursementDate);
-                    currentDueDate.setMonth(currentDueDate.getMonth() + currentMonth);
-                    
-                    renderTableRow(currentMonth, currentDueDate, principalForMonth, monthlyInterestConstant, totalPaymentThisMonth, remainingPrincipal);
+                    renderTableRow(currentMonth, dueDate, principalForMonth, monthlyInterestConstant, totalPaymentThisMonth, remainingPrincipal);
                 }
 
                 const swkDeduction = initialPrincipal * 0.005;
-                const newTermYears = Math.floor(currentMonth / 12);
-                const newTermMonths = currentMonth % 12;
                 const initialTotalPayment = fixedPrincipal + monthlyInterestConstant;
                 
                 elements.monthlyPayment.textContent = formatRupiah(initialTotalPayment);
                 elements.totalInterestPaid.textContent = formatRupiah(totalInterestPaid);
-                elements.loanTermResult.textContent = `${newTermYears} Thn ${newTermMonths} Bln`;
+                elements.totalBonusPaid.textContent = formatRupiah(totalBonusPaid);
                 elements.swkDeduction.textContent = formatRupiah(swkDeduction);
                 
                 elements.resultsSummary.classList.remove('hidden');
@@ -299,7 +318,7 @@
             showLoader(true);
             html2canvas(document.getElementById('captureArea'), { scale: 2, useCORS: true, logging: false }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = 'simulasi-pinjaman-pokok-tetap.png';
+                link.download = 'simulasi-pinjaman-tenor-tetap.png';
                 link.href = canvas.toDataURL('image/png');
                 link.click();
                 showLoader(false);
@@ -312,28 +331,29 @@
             try {
                 const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
                 doc.setFontSize(18);
-                doc.text("Simulasi Pinjaman - Pokok Tetap", 14, 22);
+                doc.text("Simulasi Pinjaman - Tenor Tetap", 14, 22);
                 doc.setFontSize(11);
                 doc.setTextColor(100);
                 const summaryText = `
                     Uang Pinjaman: ${formatRupiah(parseCurrency(elements.principalInput.value))}
                     Bunga: ${elements.interestRateInput.value}% Flat / Tahun
+                    Jangka Waktu: ${elements.termInput.value} Tahun
                     Angsuran Pokok Tetap: ${formatRupiah(parseCurrency(elements.fixedPrincipalInput.value))}
-                    Lunas Dalam: ${elements.loanTermResult.textContent}
                     Total Bunga: ${elements.totalInterestPaid.textContent}
+                    Total Bonus: ${elements.totalBonusPaid.textContent}
                     Potongan SWK: ${elements.swkDeduction.textContent}
                 `;
                 doc.text(summaryText.trim(), 14, 32);
                 doc.autoTable({
                     head: [['Angs. Ke', 'Jatuh Tempo', 'Angs. Pokok', 'Bunga', 'Total Bayar', 'Sisa Pinjaman']],
                     body: pdfData,
-                    startY: 65,
+                    startY: 70,
                     headStyles: { fillColor: [243, 244, 246], textColor: [55, 65, 81], fontSize: 8 },
                     bodyStyles: { fontSize: 7 },
                     styles: { halign: 'right' },
                     columnStyles: { 0: { halign: 'center' }, 1: { halign: 'left'} },
                 });
-                doc.save('simulasi-pinjaman-pokok-tetap.pdf');
+                doc.save('simulasi-pinjaman-tenor-tetap.pdf');
             } finally {
                 showLoader(false);
             }
