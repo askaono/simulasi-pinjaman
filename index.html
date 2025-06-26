@@ -73,6 +73,10 @@
                             <label for="annualBonus" class="block text-sm font-medium text-gray-700 mb-1">Bonus Tahunan (Opsional)</label>
                             <input type="text" id="annualBonus" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="20.000.000">
                         </div>
+                        <div>
+                            <label for="bonusStartDate" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai Potongan Bonus</label>
+                            <input type="date" id="bonusStartDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
                     </div>
                      <div class="mt-4 text-center">
                          <button id="recalculateBtn" class="w-full md:w-auto bg-indigo-600 text-white font-semibold py-2.5 px-10 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300">Hitung Simulasi</button>
@@ -130,6 +134,7 @@
             fixedPrincipalInput: document.getElementById('fixedPrincipalInput'),
             disbursementDate: document.getElementById('disbursementDate'),
             annualBonus: document.getElementById('annualBonus'),
+            bonusStartDate: document.getElementById('bonusStartDate'),
             recalculateBtn: document.getElementById('recalculateBtn'),
             resultsSummary: document.getElementById('results-summary'),
             monthlyPayment: document.getElementById('monthlyPayment'),
@@ -167,6 +172,7 @@
             const fixedPrincipal = parseCurrency(elements.fixedPrincipalInput.value);
             const disbursementDateStr = elements.disbursementDate.value;
             const annualBonus = parseCurrency(elements.annualBonus.value);
+            const bonusStartDateStr = elements.bonusStartDate.value;
             
             if (initialPrincipal <= 0 || annualInterestRate <= 0 || fixedPrincipal <= 0 || !disbursementDateStr) {
                 alert('Mohon isi Uang Pinjaman, Bunga, Angsuran Pokok Tetap, dan Tanggal Pencairan.');
@@ -184,6 +190,7 @@
                 let currentMonth = 0;
 
                 const disbursementDate = new Date(disbursementDateStr);
+                const bonusStartDate = bonusStartDateStr ? new Date(bonusStartDateStr) : null;
                 
                 renderTableRow(0, disbursementDate, 0, 0, 0, initialPrincipal);
 
@@ -191,9 +198,21 @@
                     currentMonth++;
                     
                     let principalForMonth;
+                    let isBonusMonth = false;
                     
-                    // NEW LOGIC: Check for bonus month
-                    if (currentMonth % 12 === 0 && annualBonus > 0) {
+                    // Logic to check for bonus payment
+                    if (annualBonus > 0 && bonusStartDate && currentMonth > 0) {
+                        const dueDate = new Date(disbursementDate);
+                        dueDate.setMonth(dueDate.getMonth() + currentMonth);
+                        
+                        // Check if the due date is on or after the bonus start date
+                        // AND if the month matches the bonus start date's month
+                        if (dueDate >= bonusStartDate && dueDate.getMonth() === bonusStartDate.getMonth()) {
+                            isBonusMonth = true;
+                        }
+                    }
+
+                    if (isBonusMonth) {
                         // On bonus month, principal payment is only the bonus amount
                         principalForMonth = annualBonus;
                     } else {
@@ -210,10 +229,10 @@
                     remainingPrincipal -= principalForMonth;
                     totalInterestPaid += monthlyInterestConstant;
                     
-                    const dueDate = new Date(disbursementDate);
-                    dueDate.setMonth(dueDate.getMonth() + currentMonth);
+                    const currentDueDate = new Date(disbursementDate);
+                    currentDueDate.setMonth(currentDueDate.getMonth() + currentMonth);
                     
-                    renderTableRow(currentMonth, dueDate, principalForMonth, monthlyInterestConstant, totalPaymentThisMonth, remainingPrincipal);
+                    renderTableRow(currentMonth, currentDueDate, principalForMonth, monthlyInterestConstant, totalPaymentThisMonth, remainingPrincipal);
                 }
 
                 const swkDeduction = initialPrincipal * 0.005;
